@@ -744,6 +744,12 @@
          */
         autoPopulateDashboard: async function (pod) {
             if (!pod) return;
+            if (!pod.formulationProfile && typeof normalizePodPayload === 'function') {
+                const normalized = normalizePodPayload(pod);
+                if (normalized && normalized.success && normalized.pod) {
+                    pod = normalized.pod;
+                }
+            }
 
             // 1. Populate Ingredient field (Step 1)
             const ingredientInput = document.getElementById('ingredientInput');
@@ -891,11 +897,15 @@
                 window.updateEstimatedPreparationTime();
             }
 
-            // 7. Route directly to original dashboard next step (Step 2 - Temperature Control)
-            if (typeof window.goToTemperature === 'function') {
-                window.goToTemperature();
-            } else if (typeof window.showStep === 'function') {
-                window.showStep(2);
+            // 7. Render Formulation Details into Step 1 container
+            const wrapper = document.getElementById('formulationDetailsWrapper');
+            if (wrapper && typeof this.renderFormulationDetailsHtml === 'function') {
+                wrapper.innerHTML = this.renderFormulationDetailsHtml(pod);
+            }
+
+            // Route to Step 1 (Formulation) to review authenticated pod details
+            if (typeof window.showStep === 'function') {
+                window.showStep(1);
             }
 
             // 8. Display non-disruptive toast notification
@@ -933,10 +943,228 @@
         },
 
         /**
-         * Legacy stub (screen removed from active dashboard flow).
+         * Renders human-readable Formulation Details HTML containing all 13 canonical fields.
+         * Displays normal-person-friendly markup without any raw JSON.
+         * @param {Object} pod
+         * @returns {string} HTML markup
          */
         renderFormulationDetailsHtml: function (pod) {
-            return '';
+            if (!pod || !pod.formulationProfile) return '';
+            const prof = pod.formulationProfile;
+
+            function esc(str) {
+                if (str === null || str === undefined) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            const ingList = prof.ingredients && Array.isArray(prof.ingredients) ? prof.ingredients : [];
+
+            // 1. Formulation ID
+            const formulationIdHtml = esc(prof.formulationId || 'Not specified');
+
+            // 2. Classical / AFI Reference
+            const classicalRefHtml = esc(prof.classicalReference || 'Not specified');
+
+            // 3. Ingredients (Dynamic Bullet List with Weights)
+            const ingredientsHtml = ingList.length > 0
+                ? `<ul class="details-bullet-list">` +
+                  ingList.map(ing => {
+                      const wt = ing.weight !== undefined && ing.weight !== null && ing.weight !== '' && ing.weight !== 'Not specified'
+                          ? ` &mdash; <strong>${esc(ing.weight)} g</strong>`
+                          : '';
+                      return `<li><span class="bullet-dot">&bull;</span> <span class="ing-name">${esc(ing.name)}</span>${wt}</li>`;
+                  }).join('') +
+                  `</ul>`
+                : `<span class="not-specified">Not specified</span>`;
+
+            // 4. Botanical Identity
+            const botanicalIdentityHtml = ingList.length > 0 && ingList.some(i => i.botanicalIdentity && i.botanicalIdentity !== 'Not specified')
+                ? `<ul class="details-bullet-list">` +
+                  ingList.map(ing => `<li><span class="bullet-dot">&bull;</span> <span class="sub-label">${esc(ing.name)}:</span> <em>${esc(ing.botanicalIdentity || 'Not specified')}</em></li>`).join('') +
+                  `</ul>`
+                : `<span class="not-specified">Not specified</span>`;
+
+            // 5. Part Used
+            const partUsedHtml = ingList.length > 0 && ingList.some(i => i.partUsed && i.partUsed !== 'Not specified')
+                ? `<ul class="details-bullet-list">` +
+                  ingList.map(ing => `<li><span class="bullet-dot">&bull;</span> <span class="sub-label">${esc(ing.name)}:</span> ${esc(ing.partUsed || 'Not specified')}</li>`).join('') +
+                  `</ul>`
+                : `<span class="not-specified">Not specified</span>`;
+
+            // 6. Ingredient Ratio / Weight
+            const ratioWeightHtml = ingList.length > 0
+                ? `<ul class="details-bullet-list">` +
+                  ingList.map(ing => {
+                      const r = ing.ratio && ing.ratio !== 'Not specified' ? esc(ing.ratio) : null;
+                      const w = ing.weight !== undefined && ing.weight !== null && ing.weight !== '' && ing.weight !== 'Not specified' ? `${esc(ing.weight)} g` : null;
+                      let rwText = 'Not specified';
+                      if (r && w) rwText = `${r} (${w})`;
+                      else if (r) rwText = r;
+                      else if (w) rwText = w;
+                      return `<li><span class="bullet-dot">&bull;</span> <span class="sub-label">${esc(ing.name)}:</span> ${rwText}</li>`;
+                  }).join('') +
+                  `</ul>`
+                : `<span class="not-specified">Not specified</span>`;
+
+            // 7. Coarse-Powder Specification
+            const coarsePowderHtml = esc(prof.coarsePowderSpecification || 'Not specified');
+
+            // 8. Water Multiplier / Initial Water
+            let initialWaterText = 'Not specified';
+            if (prof.initialWater && !isNaN(Number(prof.initialWater))) {
+                const mult = prof.waterMultiplier && prof.waterMultiplier !== 'Not specified'
+                    ? ` (${esc(prof.waterMultiplier)} powder ratio)`
+                    : '';
+                initialWaterText = `${esc(prof.initialWater)} mL${mult}`;
+            }
+            const initialWaterHtml = initialWaterText;
+
+            // 9. Preparation Instructions
+            const prepInstructionsHtml = esc(prof.preparationInstructions || 'Not specified');
+
+            // 10. Target Reduction Endpoint
+            let targetEndpointText = 'Not specified';
+            if (prof.targetReductionEndpoint && prof.targetReductionEndpoint !== 'Not specified') {
+                targetEndpointText = String(prof.targetReductionEndpoint).includes('mL')
+                    ? esc(prof.targetReductionEndpoint)
+                    : `${esc(prof.targetReductionEndpoint)} mL`;
+            } else if (pod.targetVolume && !isNaN(Number(pod.targetVolume))) {
+                targetEndpointText = `${pod.targetVolume} mL`;
+            }
+            const targetEndpointHtml = targetEndpointText;
+
+            // 11. Post-Brew Addition (if specified)
+            const postBrewAdditionHtml = esc(prof.postBrewAddition || 'Not specified');
+
+            // 12. Raw-Material API Reference
+            const rawMaterialApiRefHtml = esc(prof.rawMaterialApiReference || 'Not specified');
+
+            // 13. Batch ID / Source
+            let batchSourceText = 'Not specified';
+            const bId = prof.batchId && prof.batchId !== 'Not specified' ? prof.batchId : (pod.batchNumber || null);
+            const src = prof.source && prof.source !== 'Not specified' ? prof.source : null;
+            if (bId && src) {
+                batchSourceText = `${esc(bId)} &bull; ${esc(src)}`;
+            } else if (bId) {
+                batchSourceText = esc(bId);
+            } else if (src) {
+                batchSourceText = esc(src);
+            }
+            const batchSourceHtml = batchSourceText;
+
+            return `
+                <div class="formulation-details-card" id="formulationDetailsCard">
+                    <div class="details-header">
+                        <div class="details-eyebrow">
+                            <span class="check-icon">✓</span>
+                            <span>AUTHENTICATED FORMULATION PROFILE</span>
+                        </div>
+                        <h2 class="details-title">Formulation Details</h2>
+                        <div class="details-formulation-badge">${esc(pod.formulation)}</div>
+                    </div>
+
+                    <div class="formulation-fields-grid">
+                        <!-- 1. Formulation ID -->
+                        <div class="field-card field-id">
+                            <div class="field-label">Formulation ID</div>
+                            <div class="field-value highlight-id" id="fieldFormulationId">${formulationIdHtml}</div>
+                        </div>
+
+                        <!-- 2. Classical / AFI Reference -->
+                        <div class="field-card field-classical-ref">
+                            <div class="field-label">Classical / AFI Reference</div>
+                            <div class="field-value" id="fieldClassicalRef">${classicalRefHtml}</div>
+                        </div>
+
+                        <!-- 3. Ingredient Name -->
+                        <div class="field-card field-ingredients full-width">
+                            <div class="field-label">Ingredients</div>
+                            <div class="field-value" id="fieldIngredients">${ingredientsHtml}</div>
+                        </div>
+
+                        <!-- 4. Botanical Identity -->
+                        <div class="field-card field-botanical full-width">
+                            <div class="field-label">Botanical Identity</div>
+                            <div class="field-value" id="fieldBotanicalIdentity">${botanicalIdentityHtml}</div>
+                        </div>
+
+                        <!-- 5. Part Used -->
+                        <div class="field-card field-part-used full-width">
+                            <div class="field-label">Part Used</div>
+                            <div class="field-value" id="fieldPartUsed">${partUsedHtml}</div>
+                        </div>
+
+                        <!-- 6. Ingredient Ratio / Weight -->
+                        <div class="field-card field-ratio-weight full-width">
+                            <div class="field-label">Ingredient Ratio / Weight</div>
+                            <div class="field-value" id="fieldRatioWeight">${ratioWeightHtml}</div>
+                        </div>
+
+                        <!-- 7. Coarse-Powder Specification -->
+                        <div class="field-card full-width">
+                            <div class="field-label">Coarse-Powder Specification</div>
+                            <div class="field-value" id="fieldCoarsePowder">${coarsePowderHtml}</div>
+                        </div>
+
+                        <!-- 8. Water Multiplier / Initial Water -->
+                        <div class="field-card">
+                            <div class="field-label">Initial Water</div>
+                            <div class="field-value highlight-val" id="fieldInitialWater">${initialWaterHtml}</div>
+                        </div>
+
+                        <!-- 10. Target Reduction Endpoint -->
+                        <div class="field-card">
+                            <div class="field-label">Target Reduction Endpoint</div>
+                            <div class="field-value highlight-val" id="fieldTargetEndpoint">${targetEndpointHtml}</div>
+                        </div>
+
+                        <!-- 9. Preparation Instructions -->
+                        <div class="field-card full-width">
+                            <div class="field-label">Preparation Instructions</div>
+                            <div class="field-value text-body" id="fieldPrepInstructions">${prepInstructionsHtml}</div>
+                        </div>
+
+                        <!-- 11. Post-Brew Addition -->
+                        <div class="field-card full-width">
+                            <div class="field-label">Post-Brew Addition</div>
+                            <div class="field-value" id="fieldPostBrewAddition">${postBrewAdditionHtml}</div>
+                        </div>
+
+                        <!-- 12. Raw-Material API Reference -->
+                        <div class="field-card full-width">
+                            <div class="field-label">Raw-Material API Reference</div>
+                            <div class="field-value api-mono" id="fieldRawMaterialApi">${rawMaterialApiRefHtml}</div>
+                        </div>
+
+                        <!-- 13. Batch ID / Source -->
+                        <div class="field-card full-width">
+                            <div class="field-label">Batch ID / Source</div>
+                            <div class="field-value" id="fieldBatchSource">${batchSourceHtml}</div>
+                        </div>
+                    </div>
+
+                    <div class="details-actions">
+                        <button type="button" id="proceedDashboardBtn" class="btn btn-primary btn-proceed" onclick="if(typeof window.goToTemperature==='function'){window.goToTemperature();}else{window.location.href='/dashboard';}">
+                            <span>Continue to Temperature &rarr;</span>
+                            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        <a href="/scan" id="scanAnotherPodBtn" class="btn btn-secondary btn-scan-another">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 4v6h6M23 20v-6h-6"/>
+                                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+                            </svg>
+                            <span>Scan Another Pod</span>
+                        </a>
+                    </div>
+                </div>
+            `;
         }
     };
 
