@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iKwath-X • Scan Formulation Pod</title>
+    <title>iKwath-X • Pod Scanner</title>
     <meta name="description" content="Scan structured iKwath-X herbal pod QR codes for automated formulation parameters.">
 
     <!-- Google Fonts -->
@@ -73,8 +73,8 @@
     <main class="scan-main">
         <div class="scan-card">
             <div class="card-intro">
-                <span class="eyebrow">STEP 0: POD AUTHENTICATION</span>
-                <h1 class="scanner-title">Scan Formulation Pod</h1>
+                <span class="eyebrow">POD SCANNER</span>
+                <h1 class="scanner-title">Scan Pod QR Code</h1>
                 <p class="scanner-subtitle">
                     Align your camera with the pod QR code to automatically load verified preparation parameters.
                 </p>
@@ -82,9 +82,6 @@
 
             <!-- Feedback Notification Alert -->
             <div id="scanAlert" class="scan-alert" role="alert" style="display: none;"></div>
-
-            <!-- Dynamic Formulation Details Section (Displayed After Valid QR/POD Scan) -->
-            <div id="formulationDetailsSection" class="formulation-details-wrapper" style="display: none;"></div>
 
             <!-- Camera Viewfinder Stage -->
             <div class="viewfinder-stage">
@@ -184,7 +181,6 @@
             const placeholder = document.getElementById('cameraPlaceholder');
             const statusText = document.getElementById('cameraStatusText');
             const alertBox = document.getElementById('scanAlert');
-            const detailsSection = document.getElementById('formulationDetailsSection');
             const demoBtn = document.getElementById('scanDemoPodBtn');
             const altDemoBtn = document.getElementById('scanAltDemoPodBtn');
             const fileInput = document.getElementById('qrFileInput');
@@ -294,48 +290,18 @@
                     return;
                 }
 
-                // Valid pod
+                // Valid pod: preserve scanned QR data internally
                 const pod = result.pod;
                 log('Validated pod object:', pod);
                 podParser.saveActivePod(pod);
 
-                showAlert(`
-                    <div style="font-weight:700;font-size:1.05rem;margin-bottom:2px;">✓ Pod Authenticated Successfully</div>
-                    <div style="font-size:0.92rem;opacity:0.95;">Formulation Profile Decoded &bull; Automated Parameters Populated</div>
-                `, 'success');
-
-                // Render 13-field Formulation Details section (no auto-timeout)
-                if (detailsSection && typeof podParser.renderFormulationDetailsHtml === 'function') {
-                    detailsSection.innerHTML = podParser.renderFormulationDetailsHtml(pod);
-                    detailsSection.style.display = 'block';
-
-                    // Hide viewfinder stage & demo panel to provide clean, focused view of Formulation Details
-                    const viewfinderStage = document.querySelector('.viewfinder-stage');
-                    const demoPanel = document.querySelector('.demo-pod-panel');
-                    const manualFooter = document.querySelector('.manual-skip-footer');
-
-                    if (viewfinderStage) viewfinderStage.style.display = 'none';
-                    if (demoPanel) demoPanel.style.display = 'none';
-                    if (manualFooter) manualFooter.style.display = 'none';
-
-                    // Bind "Scan Another Pod" button
-                    const scanAnotherBtn = document.getElementById('scanAnotherPodBtn');
-                    if (scanAnotherBtn) {
-                        scanAnotherBtn.addEventListener('click', () => {
-                            detailsSection.style.display = 'none';
-                            detailsSection.innerHTML = '';
-                            hideAlert();
-                            if (viewfinderStage) viewfinderStage.style.display = 'flex';
-                            if (demoPanel) demoPanel.style.display = 'block';
-                            if (manualFooter) manualFooter.style.display = 'block';
-                            scanningActive = true;
-                            if (visualOverlay) visualOverlay.classList.remove('detected');
-                            startCamera();
-                        });
-                    }
+                // Stop camera stream immediately
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
                 }
+                scanningActive = false;
 
-                // Immediately navigate to Dashboard Formulation step (Step 1)
+                // Directly open the original dashboard / next intended dashboard screen
                 window.location.href = '/dashboard';
             }
 
