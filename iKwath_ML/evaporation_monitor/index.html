@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        iKwath Smart Preparation
+    </title>
+
+
+    <!-- Google Font -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
+        rel="stylesheet">
+
+
+    <!-- Chart.js -->
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+    <!-- Authentication Guard -->
+    <script src="/auth.js"></script>
+    <script>
+        auth.requireAuth();
+    </script>
+
+    <!-- Pod Parser Layer -->
+    <script src="/pod_parser.js"></script>
+
+    <!-- Batch History & Recommendation Engine -->
+    <script src="/batch_history.js"></script>
+
+    <!-- Formulation Details / Scanner Stylesheet -->
+    <link rel="stylesheet" href="/scan.css">
+
+    <!-- CSS -->
+
+    <link rel="stylesheet" href="/style.css">
+
+</head>
+
+
+<body>
+
+
+    <!-- ===================================================== -->
+    <!-- BACKGROUND DECORATION -->
+    <!-- ===================================================== -->
+
+    <div class="leaf leaf-one">🌿</div>
+
+    <div class="leaf leaf-two">🍃</div>
+
+    <div class="leaf leaf-three">🌿</div>
+
+
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
+
+    <header class="header">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                🌿
+            </div>
+
+            <div>
+
+                <h1>
+                    iKwath
+                </h1>
+
+                <span>
+                    Smart Ayurvedic Preparation
+                </span>
+
+            </div>
+
+        </div>
+
+        <!-- Primary Navigation (Desktop) -->
+        <nav class="main-nav" aria-label="Main Navigation">
+            <a href="/dashboard" class="nav-item active">
+                <span class="nav-icon">🫖</span>
+                <span class="nav-label">Dashboard</span>
+            </a>
+            <a href="/pod-scanner" class="nav-item">
+                <span class="nav-icon">📷</span>
+                <span class="nav-label">Pod Scanner</span>
+            </a>
+            <a href="/batch-history" class="nav-item">
+                <span class="nav-icon">📜</span>
+                <span class="nav-label">Batch History</span>
+            </a>
+        </nav>
+
+        <div class="header-actions">
+
+            <div class="header-status">
+
+                <span class="status-dot"></span>
+
+                System Ready
+
+            </div>
+
+            <a href="/scan" id="scanHeaderBtn" class="scan-header-btn" title="Scan new pod">
+                📷 Scan Pod
+            </a>
+
+            <button id="logoutBtn" class="logout-btn" onclick="auth.logout()" title="Logout of iKwath-X">
+                Logout
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- ===================================================== -->
+    <!-- HERO -->
+    <!-- ===================================================== -->
+
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <span class="eyebrow">
+                SMART KWATHA TECHNOLOGY
+            </span>
+
+            <h2>
+                Fresh Kwatha.
+                <br>
+                <span>Smartly Prepared.</span>
+            </h2>
+
+            <p>
+                Intelligent water prediction and
+                real-time evaporation monitoring
+                for controlled Kwatha preparation.
+            </p>
+
+        </div>
+
+
+        <div class="hero-visual">
+
+            <div class="hero-appliance-wrap">
+                <img src="ikwath_appliance.png" alt="iKwath Smart Appliance" class="hero-appliance-img">
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ===================================================== -->
+    <!-- STEP INDICATOR -->
+    <!-- ===================================================== -->
+
+    <div class="steps">
+
+        <div class="step active" data-step="1">
+
+            <div class="step-number">
+                1
+            </div>
+
+            <span>
+                Formulation
+            </span>
+
+        </div>
+
+
+        <div class="step-line"></div>
+
+
+        <div class="step" data-step="2">
+
+            <div class="step-number">
+                2
+            </div>
+
+            <span>
+                Temperature
+            </span>
+
+        </div>
+
+
+        <div class="step-line"></div>
+
+
+        <div class="step" data-step="3">
+
+            <div class="step-number">
+                3
+            </div>
+
+            <span>
+                Monitoring
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <main>
+
+
+        <!-- ===================================================== -->
+        <!-- STEP 1 - FORMULATION -->
+        <!-- ===================================================== -->
+
+        <section id="step1" class="step-panel active">
+
+            <!-- Dynamic Formulation Details Section populated from scanned pod QR -->
+            <div id="formulationDetailsWrapper"></div>
+
+            <!-- Internal Data Store (Hidden: Preserves scanned formulation parameters internally for calculations without displaying removed Step 1 UI) -->
+            <div id="internalFormulationStore" style="display:none;" aria-hidden="true">
+                <h3 id="detectedFormulation">Amrtottara Kwatha Curna</h3>
+                <div id="selectedIngredients">
+                    <div class="pod-ingredients-block" style="margin-top:8px;">
+                        <div style="font-size:11px; font-weight:800; letter-spacing:1px; color:var(--gold); text-transform:uppercase; margin-bottom:4px;">Ingredients</div>
+                        <div style="display:flex; flex-direction:column; gap:2px; font-size:13px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; max-width:250px; padding:2px 0;">
+                                <span style="font-weight:600; color:var(--text);">Sunthi</span>
+                                <span style="color:var(--muted); font-size:13px; margin:0 8px;">&mdash;</span>
+                                <strong style="color:var(--forest); font-weight:700;">8 g</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; max-width:250px; padding:2px 0;">
+                                <span style="font-weight:600; color:var(--text);">Amrta</span>
+                                <span style="color:var(--muted); font-size:13px; margin:0 8px;">&mdash;</span>
+                                <strong style="color:var(--forest); font-weight:700;">24 g</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; max-width:250px; padding:2px 0;">
+                                <span style="font-weight:600; color:var(--text);">Abhaya</span>
+                                <span style="color:var(--muted); font-size:13px; margin:0 8px;">&mdash;</span>
+                                <strong style="color:var(--forest); font-weight:700;">16 g</strong>
+                            </div>
+                        </div>
+                        <div style="margin-top:8px; padding-top:6px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); display:flex; gap:12px; flex-wrap:wrap;">
+                            <span>Water: <strong style="color:var(--text);">384 mL</strong></span>
+                            <span>&bull;</span>
+                            <span>Target: <strong style="color:var(--text);">96 mL</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="detected-badge" id="detectedBadge">✓ Authenticated Pod</div>
+                <strong id="waterAmount">384 mL</strong>
+                <strong id="targetVolume">96 mL</strong>
+                <input type="hidden" id="powderInput" value="48">
+                <span id="powderAmount">48 g</span>
+            </div>
+
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- STEP 2 - TEMPERATURE -->
+        <!-- ===================================================== -->
+
+        <section id="step2" class="step-panel">
+
+            <div class="section-heading">
+
+                <span class="section-number">
+                    STEP 02
+                </span>
+
+                <h3>
+                    Set Temperature
+                </h3>
+
+                <p>
+                    Select any temperature between
+                    0°C and 100°C.
+                    The 80–90°C range is highlighted
+                    as the recommended operating range
+                    for optimal kwatha extraction.
+                </p>
+
+            </div>
+
+
+            <div class="temperature-panel">
+
+
+                <div class="temperature-display">
+
+                    <span>
+                        Current Temperature
+                    </span>
+
+                    <strong id="temperatureValue">
+                        85°C
+                    </strong>
+
+                </div>
+
+
+                <!-- Recommended Temperature Card (Informational Historical Guidance) -->
+                <div class="recommended-temperature-card" id="step4RecommendedCard">
+                    <div class="rec-temp-header">
+                        <span class="rec-temp-eyebrow">HISTORICAL GUIDANCE</span>
+                        <a href="/batch-history" class="rec-temp-link" title="View Full Batch History">View History
+                            →</a>
+                    </div>
+                    <div class="rec-temp-main">
+                        <span class="rec-temp-prefix"
+                            style="font-size:14px; color:var(--muted); font-weight:600;">Recommended:</span>
+                        <strong class="rec-temp-val" id="recommendedTempValue">90°C</strong>
+                    </div>
+                    <div class="rec-temp-meta" id="recommendedTempSource">Based on 10 previous matching preparations
+                    </div>
+                </div>
+
+
+                <!-- Dynamic Estimated Preparation Time Card -->
+                <div class="estimated-time-card" id="step3EstimatedTimeCard">
+                    <div class="est-time-header">
+                        <span class="est-time-eyebrow">PROCESS MODEL ESTIMATION</span>
+                        <span class="est-time-badge" id="estTimeBadge">Live</span>
+                    </div>
+                    <div class="est-time-main">
+                        <span class="est-time-label">ESTIMATED PREPARATION TIME</span>
+                        <strong class="est-time-val" id="estimatedPrepTime">18 min</strong>
+                    </div>
+                    <div class="est-time-meta" id="estimatedPrepTimeNote">Calculated from formulation context &amp;
+                        thermal curve</div>
+                </div>
+
+
+                <input type="range" id="temperatureSlider" min="0" max="100" value="85" step="1">
+
+
+                <div class="temperature-scale">
+
+                    <span>
+                        0°C
+                    </span>
+
+                    <span class="recommended-scale">
+                        80°C — 90°C Recommended
+                    </span>
+
+                    <span>
+                        100°C
+                    </span>
+
+                </div>
+
+
+                <div class="temperature-number">
+
+                    <label>
+                        Temperature Input
+                    </label>
+
+                    <div class="number-input">
+
+                        <input type="number" id="temperatureInput" min="0" max="100" value="85" step="1">
+
+                        <span>
+                            °C
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div id="temperatureStatus" class="temperature-status good">
+                    ✓ Within Recommended Range
+                </div>
+
+
+                <p class="temperature-note">
+
+                    Engineering prototype guidance:
+                    80–90°C is highlighted as the
+                    recommended operating range.
+                    The control allows 0–100°C.
+
+                </p>
+
+
+                <button id="startButton" class="start-button" onclick="startPreparation()">
+                    ▶ Start Preparation
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- STEP 3 - MONITORING -->
+        <!-- ===================================================== -->
+
+        <section id="step3" class="step-panel">
+
+            <div class="section-heading">
+
+                <span class="section-number">
+                    STEP 03
+                </span>
+
+                <h3>
+                    Evaporation Monitor
+                </h3>
+
+                <p>
+                    Real-time monitoring of temperature,
+                    volume reduction and preparation progress.
+                </p>
+
+            </div>
+
+
+            <!-- Preparation status -->
+
+            <div id="preparationStatus" class="preparation-status running">
+                Preparation Running
+            </div>
+
+
+            <!-- Recommended Temperature Live Advisory -->
+            <div class="monitor-recommendation-bar" id="monitorRecCard">
+                <div class="rec-bar-left">
+                    <span class="rec-bar-label">RECOMMENDED TEMPERATURE</span>
+                    <strong class="rec-bar-value" id="monitorRecommendedTempValue">90°C</strong>
+                </div>
+                <div class="rec-bar-right">
+                    <span class="rec-bar-source" id="monitorRecommendedTempSource">Based on 10 previous matching
+                        preparations</span>
+                    <a href="/batch-history" class="rec-temp-link" style="margin-top: 4px;">Full Batch History →</a>
+                </div>
+            </div>
+
+
+            <!-- Monitor Cards -->
+
+            <div class="monitor-grid">
+
+
+                <div class="monitor-card">
+
+                    <span>
+                        🌡 Temperature
+                    </span>
+
+                    <strong id="monitorTemperature">
+                        85.0°C
+                    </strong>
+
+                </div>
+
+
+                <div class="monitor-card">
+
+                    <span>
+                        💧 Current Volume
+                    </span>
+
+                    <strong id="currentVolume">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="monitor-card">
+
+                    <span>
+                        ♨ Evaporation Rate
+                    </span>
+
+                    <strong id="evaporationRate">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="monitor-card">
+
+                    <span>
+                        ⏱ Elapsed Time
+                    </span>
+
+                    <strong id="elapsedTime">
+                        00:00
+                    </strong>
+
+                </div>
+
+
+                <div class="monitor-card">
+
+                    <span>
+                        ⏳ Remaining Time
+                    </span>
+
+                    <strong id="remainingTime">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="monitor-card target-card">
+
+                    <span>
+                        🎯 Target Volume
+                    </span>
+
+                    <strong id="monitorTargetVolume">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- PROGRESS -->
+            <!-- ================================================= -->
+
+            <div class="progress-panel">
+
+                <div class="progress-header">
+
+                    <span>
+                        Preparation Progress
+                    </span>
+
+                    <strong id="progressText">
+                        0%
+                    </strong>
+
+                </div>
+
+
+                <div class="progress-track">
+
+                    <div id="progressBar" class="progress-bar"></div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- VOLUME FLOW -->
+            <!-- ================================================= -->
+
+            <div class="volume-flow">
+
+                <div class="volume-node">
+
+                    <span>
+                        Initial Water
+                    </span>
+
+                    <strong id="initialVolume">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="flow-line">
+                    ↓
+                </div>
+
+
+                <div class="volume-node active-node">
+
+                    <span>
+                        Current Volume
+                    </span>
+
+                    <strong id="flowCurrentVolume">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="flow-line">
+                    ↓
+                </div>
+
+
+                <div class="volume-node target-node">
+
+                    <span>
+                        Target Decoction
+                    </span>
+
+                    <strong id="flowTargetVolume">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- DUAL MONITORING GRAPHS (50 / 50 TELEMETRY) -->
+            <!-- ================================================= -->
+
+            <div class="monitoring-graphs-grid">
+
+                <!-- GRAPH 1: TEMPERATURE VS TIME -->
+                <div class="chart-panel monitoring-graph-card">
+
+                    <div class="chart-header">
+
+                        <div>
+                            <span>THERMAL TELEMETRY</span>
+                            <h3>Temperature vs Time</h3>
+                        </div>
+
+                        <div class="chart-header-right">
+                            <span class="chart-val-badge temp-badge" id="tempChartCurrentBadge">—°C</span>
+                            <div class="chart-status">● LIVE</div>
+                        </div>
+
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="temperatureChart"></canvas>
+                    </div>
+
+                </div>
+
+
+                <!-- GRAPH 2: VOLUME REDUCTION VS TIME -->
+                <div class="chart-panel monitoring-graph-card">
+
+                    <div class="chart-header">
+
+                        <div>
+                            <span>DECOCTION TELEMETRY</span>
+                            <h3>Volume Reduction vs Time</h3>
+                        </div>
+
+                        <div class="chart-header-right">
+                            <span class="chart-val-badge vol-badge" id="volumeChartCurrentBadge">— mL</span>
+                            <div class="chart-status">● LIVE</div>
+                        </div>
+
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="volumeChart"></canvas>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- COMPLETION -->
+            <!-- ================================================= -->
+
+            <div id="completionBox" class="completion-box">
+
+                <div class="completion-icon">
+                    ✓
+                </div>
+
+
+                <span class="completion-label">
+                    PREPARATION COMPLETE
+                </span>
+
+
+                <h2 id="readyMessage">
+                    Your Kwatha is Ready
+                </h2>
+
+
+                <p>
+                    The target decoction volume has been reached.
+                    The preparation cycle has stopped automatically.
+                </p>
+
+
+                <div class="completion-details">
+
+
+                    <div>
+
+                        <span>
+                            Final Volume
+                        </span>
+
+                        <strong id="finalVolume">
+                            —
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Preparation Time
+                        </span>
+
+                        <strong id="finalPreparationTime">
+                            —
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Temperature
+                        </span>
+
+                        <strong id="finalTemperature">
+                            —
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="machine-status">
+
+                    <span id="heatingStatus">
+                        Heating Stopped
+                    </span>
+
+                    <span id="evaporationStatus">
+                        Evaporation Stopped
+                    </span>
+
+                </div>
+
+
+                <button class="reset-button" onclick="resetPreparation()">
+                    ↻ Prepare Another Kwatha
+                </button>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+        <a href="/dashboard" class="mobile-nav-item active">
+            <span class="mobile-nav-icon">🫖</span>
+            <span class="mobile-nav-label">Dashboard</span>
+        </a>
+        <a href="/pod-scanner" class="mobile-nav-item">
+            <span class="mobile-nav-icon">📷</span>
+            <span class="mobile-nav-label">Scan</span>
+        </a>
+        <a href="/batch-history" class="mobile-nav-item">
+            <span class="mobile-nav-icon">📜</span>
+            <span class="mobile-nav-label">History</span>
+        </a>
+    </nav>
+
+
+    <!-- ===================================================== -->
+    <!-- FOOTER -->
+    <!-- ===================================================== -->
+
+    <footer>
+
+        <div>
+
+            <strong>
+                iKwath
+            </strong>
+
+            <span>
+                Smart Ayurvedic Preparation System
+            </span>
+
+        </div>
+
+
+        <p>
+            Prototype Dashboard • Water Prediction
+            • Evaporation Monitoring
+        </p>
+
+    </footer>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script src="/script.js"></script>
+
+    <!-- Pod Auto-Population -->
+    <script>
+        async function initActivePod() {
+            if (typeof podParser !== 'undefined' && typeof podParser.getActivePod === 'function') {
+                let activePod = podParser.getActivePod();
+                if (!activePod) {
+                    activePod = {
+                        podId: 'KW-F001',
+                        formulation: 'Amrtottara Kwatha Curna',
+                        powder: 48,
+                        ingredients: ['Sunthi', 'Amrta', 'Abhaya'],
+                        ingredientDetails: [
+                            { name: 'Sunthi', weight: 8 },
+                            { name: 'Amrta', weight: 24 },
+                            { name: 'Abhaya', weight: 16 }
+                        ],
+                        water: 384,
+                        targetVolume: 96,
+                        temperature: 85,
+                        batchNumber: 'IKW-AMR-2026-01',
+                        standard: 'Sharngadhara Samhita'
+                    };
+                    if (typeof podParser.saveActivePod === 'function') {
+                        podParser.saveActivePod(activePod);
+                    }
+                }
+                await podParser.autoPopulateDashboard(activePod);
+            }
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            initActivePod();
+            setTimeout(initActivePod, 50);
+        });
+    </script>
+
+</body>
+
+</html>

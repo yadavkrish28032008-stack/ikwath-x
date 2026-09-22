@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch History • iKwath Smart Ayurvedic Preparation</title>
+    <meta name="description" content="View historical preparation records, formulation analytics, and process intelligence for iKwath-X.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Authentication Guard -->
+    <script src="/auth.js"></script>
+    <script>
+        auth.requireAuth();
+    </script>
+
+    <!-- Pod Parser Layer -->
+    <script src="/pod_parser.js"></script>
+
+    <!-- Batch History Engine -->
+    <script src="/batch_history.js"></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <!-- Background Decoration -->
+    <div class="leaf leaf-one">🌿</div>
+    <div class="leaf leaf-two">🍃</div>
+    <div class="leaf leaf-three">🌿</div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="brand">
+            <div class="brand-icon">🌿</div>
+            <div>
+                <h1>iKwath</h1>
+                <span>Smart Ayurvedic Preparation</span>
+            </div>
+        </div>
+
+        <!-- Primary Navigation (Desktop) -->
+        <nav class="main-nav" aria-label="Main Navigation">
+            <a href="/dashboard" class="nav-item">
+                <span class="nav-icon">🫖</span>
+                <span class="nav-label">Dashboard</span>
+            </a>
+            <a href="/pod-scanner" class="nav-item">
+                <span class="nav-icon">📷</span>
+                <span class="nav-label">Pod Scanner</span>
+            </a>
+            <a href="/batch-history" class="nav-item active">
+                <span class="nav-icon">📜</span>
+                <span class="nav-label">Batch History</span>
+            </a>
+        </nav>
+
+        <div class="header-actions">
+            <div class="header-status">
+                <span class="status-dot"></span>
+                System Ready
+            </div>
+
+            <button id="logoutBtn" class="logout-btn" onclick="auth.logout()" title="Logout of iKwath-X">
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- Batch History Page Container -->
+    <main class="batch-page-container" id="batchHistoryPageRoot">
+
+        <!-- Page Intro Header -->
+        <div class="batch-page-header">
+            <span class="batch-page-eyebrow">HISTORICAL PROCESS INTELLIGENCE</span>
+            <h1>Batch History</h1>
+            <p class="batch-page-subtitle">
+                Previous Kwatha Preparations • Analytics & Recommended Parameters from Stored Batch History
+            </p>
+        </div>
+
+        <!-- Filters Toolbar -->
+        <div class="batch-filter-bar">
+            <!-- Time Range Filters -->
+            <div class="filter-btn-group">
+                <button type="button" class="filter-btn active" id="filterTodayBtn">
+                    Today
+                </button>
+                <button type="button" class="filter-btn" id="filter7DaysBtn">
+                    Last 7 Days
+                </button>
+                <button type="button" class="filter-btn" id="filterAllBtn">
+                    All History
+                </button>
+            </div>
+
+            <!-- Formulation Filter Dropdown -->
+            <div class="filter-select-wrapper">
+                <label for="formulationFilterSelect" class="filter-select-label">Formulation:</label>
+                <select id="formulationFilterSelect" class="filter-select">
+                    <option value="all">All Formulations</option>
+                    <option value="Amrtottara Kwatha Curna">Amrtottara Kwatha Curna</option>
+                    <option value="Aragvadhadi Kwatha Curna">Aragvadhadi Kwatha Curna</option>
+                    <option value="Ardhabilva Kwatha Curna">Ardhabilva Kwatha Curna</option>
+                    <option value="Chinnodbhavadi Kwatha Curna">Chinnodbhavadi Kwatha Curna</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Summary Statistics Grid -->
+        <div class="batch-metrics-grid">
+            <div class="batch-metric-card">
+                <span class="batch-metric-label">Preparations Today</span>
+                <strong class="batch-metric-val" id="batchSummaryTodayVal">30</strong>
+            </div>
+
+            <div class="batch-metric-card">
+                <span class="batch-metric-label">Matching Preparations</span>
+                <strong class="batch-metric-val highlight" id="batchSummaryMatchingVal">10</strong>
+            </div>
+
+            <div class="batch-metric-card">
+                <span class="batch-metric-label">Average Temperature</span>
+                <strong class="batch-metric-val" id="batchSummaryAvgTempVal">90°C</strong>
+            </div>
+
+            <div class="batch-metric-card">
+                <span class="batch-metric-label">Average Preparation Time</span>
+                <strong class="batch-metric-val" id="batchSummaryAvgTimeVal">18 min</strong>
+            </div>
+
+            <div class="batch-metric-card">
+                <span class="batch-metric-label">Average Water</span>
+                <strong class="batch-metric-val" id="batchSummaryAvgWaterVal">384 mL</strong>
+            </div>
+        </div>
+
+        <!-- Recommended Temperature Intelligence Card -->
+        <div class="batch-recommendation-box" id="batchPageRecommendationCard">
+            <div class="batch-rec-left">
+                <span class="batch-rec-tag">RECOMMENDED TEMPERATURE</span>
+                <strong class="batch-rec-val" id="batchPageRecTempVal">90°C</strong>
+                <span class="rec-bar-note" id="batchPageRecContext">Based on matching classical records</span>
+            </div>
+
+            <div class="batch-rec-right">
+                <span class="batch-rec-source" id="batchPageRecTempSource">Based on 10 previous matching preparations</span>
+                <span class="batch-rec-disclaimer">Historical process guidance • Informational only</span>
+            </div>
+        </div>
+
+        <!-- Formulation History Grouping Cards -->
+        <div class="formulation-groups-section">
+            <h3 class="formulation-groups-title">
+                <span>🌿 Formulation History & Composition Grouping</span>
+            </h3>
+            <div class="formulation-groups-grid" id="formulationGroupsContainer">
+                <!-- Dynamically populated by batch_history.js -->
+            </div>
+        </div>
+
+        <!-- Full Batch History Table (10 Columns) -->
+        <div class="full-batch-table-container">
+            <div class="full-table-header">
+                <h3>Completed Preparation Records</h3>
+                <span class="batch-filter-count" id="batchFilterResultCount">Showing completed batches</span>
+            </div>
+
+            <div class="table-scroll-wrapper">
+                <table class="full-batch-table" id="fullBatchTable">
+                    <thead>
+                        <tr>
+                            <th>Batch ID</th>
+                            <th>Pod ID</th>
+                            <th>Formulation</th>
+                            <th>Date / Time</th>
+                            <th>Temperature</th>
+                            <th>Water</th>
+                            <th>Target Vol</th>
+                            <th>Final Vol</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fullBatchTableBody">
+                        <!-- Dynamically populated by batch_history.js -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+        <a href="/dashboard" class="mobile-nav-item">
+            <span class="mobile-nav-icon">🫖</span>
+            <span class="mobile-nav-label">Dashboard</span>
+        </a>
+        <a href="/pod-scanner" class="mobile-nav-item">
+            <span class="mobile-nav-icon">📷</span>
+            <span class="mobile-nav-label">Scan</span>
+        </a>
+        <a href="/batch-history" class="mobile-nav-item active">
+            <span class="mobile-nav-icon">📜</span>
+            <span class="mobile-nav-label">History</span>
+        </a>
+    </nav>
+
+    <!-- Footer -->
+    <footer>
+        <div>
+            <strong>iKwath</strong>
+            <span>Smart Ayurvedic Preparation System</span>
+        </div>
+        <p>
+            Batch History & Historical Intelligence • Water Prediction • Evaporation Monitoring
+        </p>
+    </footer>
+
+</body>
+
+</html>

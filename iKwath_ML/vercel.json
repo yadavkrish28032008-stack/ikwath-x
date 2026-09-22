@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/evaporation_monitor/app.py"
+    }
+  ]
+}
