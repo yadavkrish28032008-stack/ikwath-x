@@ -858,6 +858,14 @@
             initActivePod();
             setTimeout(initActivePod, 50);
         });
+        window.addEventListener("pageshow", function () {
+            initActivePod();
+        });
+        window.addEventListener("pagehide", function () {
+            if (typeof window.resetPreparation === "function") {
+                window.resetPreparation();
+            }
+        });
     </script>
 
 </body>

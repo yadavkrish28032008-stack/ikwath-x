@@ -156,6 +156,16 @@
                             <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
+                    <button type="button" class="btn btn-demo-pod btn-third-demo" id="scanThirdDemoPodBtn">
+                        <span class="demo-pod-icon" style="background: var(--color-gold-surface, #FDF8ED); color: #B38600;">🌿</span>
+                        <div class="demo-pod-info">
+                            <span class="demo-pod-title">Scan Third Pod (KW-F003)</span>
+                            <span class="demo-pod-meta">Ardhabilva Kwatha Curna • 48g • Classical 6 Botanicals</span>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
 
@@ -183,6 +193,7 @@
             const alertBox = document.getElementById('scanAlert');
             const demoBtn = document.getElementById('scanDemoPodBtn');
             const altDemoBtn = document.getElementById('scanAltDemoPodBtn');
+            const thirdDemoBtn = document.getElementById('scanThirdDemoPodBtn');
             const fileInput = document.getElementById('qrFileInput');
             const flipBtn = document.getElementById('flipCameraBtn');
             const visualOverlay = document.getElementById('viewfinderOverlay');
@@ -241,6 +252,26 @@
                 standard: 'Ayurvedic Formulary of India (AFI Part I, 4:2)'
             };
 
+            // Third Demo QR Payload (KW-F003 Ardhabilva Kwatha Curna)
+            const THIRD_DEMO_QR_PAYLOAD = {
+                podId: 'KW-F003',
+                formulation: 'Ardhabilva Kwatha Curna',
+                powder: 48,
+                ingredients: [
+                    { name: 'Punarnava', weight: 8 },
+                    { name: 'Sunthi', weight: 8 },
+                    { name: 'Brihati', weight: 8 },
+                    { name: 'Kantakari', weight: 8 },
+                    { name: 'Apamarga', weight: 8 },
+                    { name: 'Duralabha', weight: 8 }
+                ],
+                water: 384,
+                targetVolume: 96,
+                temperature: 88,
+                batchNumber: 'IKW-ARD-2026-03',
+                standard: 'Ayurvedic Formulary of India (AFI Part I) / Sahasrayogam'
+            };
+
             function showAlert(messageOrHtml, type = 'error') {
                 alertBox.innerHTML = messageOrHtml;
                 alertBox.className = 'scan-alert ' + (type === 'success' ? 'alert-success' : 'alert-error');
@@ -252,15 +283,27 @@
             }
 
             /**
+             * Reset scanner state for reuse (including when returning via back navigation/bfcache)
+             */
+            function resetScannerState() {
+                scanningActive = true;
+                hideAlert();
+                if (visualOverlay) visualOverlay.classList.remove('detected');
+                if (statusText) statusText.textContent = 'Scanning for Pod QR...';
+                startCamera();
+            }
+
+            /**
               * Process decoded QR payload string
               */
-            function handleScannedPayload(rawString) {
-                if (!scanningActive) return;
+            function handleScannedPayload(rawString, force = false) {
+                if (!scanningActive && !force) return;
 
                 // Stop loop immediately to prevent duplicate triggers
                 scanningActive = false;
                 if (animationFrameId) {
                     cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
                 }
 
                 // Required debug logging for developer inspection
@@ -477,18 +520,54 @@
             // Instant Demo Pod Click (KW-F001 Amrtottara)
             demoBtn.addEventListener('click', () => {
                 hideAlert();
+                scanningActive = true;
                 log('Triggered Instant Demo Pod emulation (KW-F001).');
-                handleScannedPayload(JSON.stringify(DEMO_QR_PAYLOAD));
+                handleScannedPayload(JSON.stringify(DEMO_QR_PAYLOAD), true);
             });
 
             // Instant Alternate Demo Pod Click (KW-F002 Aragvadhadi)
             if (altDemoBtn) {
                 altDemoBtn.addEventListener('click', () => {
                     hideAlert();
+                    scanningActive = true;
                     log('Triggered Alternate Demo Pod emulation (KW-F002).');
-                    handleScannedPayload(JSON.stringify(ALT_DEMO_QR_PAYLOAD));
+                    handleScannedPayload(JSON.stringify(ALT_DEMO_QR_PAYLOAD), true);
                 });
             }
+
+            // Instant Third Demo Pod Click (KW-F003 Ardhabilva)
+            if (thirdDemoBtn) {
+                thirdDemoBtn.addEventListener('click', () => {
+                    hideAlert();
+                    scanningActive = true;
+                    log('Triggered Third Demo Pod emulation (KW-F003).');
+                    handleScannedPayload(JSON.stringify(THIRD_DEMO_QR_PAYLOAD), true);
+                });
+            }
+
+            // Reset state when navigating back/forward from bfcache
+            window.addEventListener('pageshow', (event) => {
+                log('pageshow event triggered (persisted=' + event.persisted + '). Resetting scanner state.');
+                resetScannerState();
+            });
+
+            window.addEventListener('popstate', () => {
+                log('popstate event triggered. Resetting scanner state.');
+                resetScannerState();
+            });
+
+            // Clean up camera stream and animation frames when navigating away
+            window.addEventListener('pagehide', () => {
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                }
+                scanningActive = false;
+            });
 
             // Initialize camera
             startCamera();

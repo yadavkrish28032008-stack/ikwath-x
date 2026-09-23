@@ -744,6 +744,12 @@
          */
         autoPopulateDashboard: async function (pod) {
             if (!pod) return;
+
+            // Reset any previous running preparation state cleanly so no data leaks into the new formulation
+            if (typeof window.resetPreparation === 'function') {
+                window.resetPreparation();
+            }
+
             if (!pod.formulationProfile && typeof normalizePodPayload === 'function') {
                 const normalized = normalizePodPayload(pod);
                 if (normalized && normalized.success && normalized.pod) {
@@ -1155,7 +1161,7 @@
                                 <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </button>
-                        <a href="/scan" id="scanAnotherPodBtn" class="btn btn-secondary btn-scan-another">
+                        <a href="/scan" id="scanAnotherPodBtn" class="btn btn-secondary btn-scan-another" onclick="if(typeof window.resetPreparation==='function'){window.resetPreparation();}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M1 4v6h6M23 20v-6h-6"/>
                                 <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
