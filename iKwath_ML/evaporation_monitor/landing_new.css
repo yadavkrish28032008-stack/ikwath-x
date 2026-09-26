@@ -51,20 +51,28 @@ body {
     justify-content: space-between;
 }
 
-.brand {
+.header-brand-wrap {
     display: flex;
     align-items: center;
-    gap: 10px;
-    white-space: nowrap;
+    gap: 18px;
+    flex-shrink: 0;
 }
 
+.sih-header-logo,
 .header-partner-logos {
     height: 42px;
     width: auto;
     max-height: 44px;
     object-fit: contain;
-    margin-right: 6px;
     display: block;
+    flex-shrink: 0;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
     flex-shrink: 0;
 }
 
@@ -1431,6 +1439,7 @@ footer {
     nav {
         gap: 16px;
     }
+    .sih-header-logo,
     .header-partner-logos {
         height: 36px;
     }
@@ -1440,6 +1449,10 @@ footer {
     nav {
         gap: 12px;
     }
+    .header-brand-wrap {
+        gap: 14px;
+    }
+    .sih-header-logo,
     .header-partner-logos {
         height: 32px;
     }
@@ -1451,6 +1464,11 @@ footer {
         height: 68px;
     }
 
+    .header-brand-wrap {
+        gap: 10px;
+    }
+
+    .sih-header-logo,
     .header-partner-logos {
         height: 28px;
     }
@@ -2272,6 +2290,10 @@ footer {
 }
 
 @media (max-width: 420px) {
+    .header-brand-wrap {
+        gap: 8px;
+    }
+    .sih-header-logo,
     .header-partner-logos {
         height: 22px;
     }

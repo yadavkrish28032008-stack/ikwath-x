@@ -7,7 +7,7 @@
 
     <title>iKwath-X | ROOT LOGIC</title>
 
-    <link rel="stylesheet" href="/landing_new.css">
+    <link rel="stylesheet" href="landing_new.css">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,14 +25,19 @@
 
         <div class="nav-container">
 
-            <div class="brand">
-                <img src="/landing_assets/sih_moe_aicte_logos.png" alt="Ministry of Education, AICTE, MoE Innovation Cell, Smart India Hackathon 2026" class="header-partner-logos">
+            <div class="header-brand-wrap">
+                <img src="landing_assets/SIH2026-logo.png" 
+                     onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='/landing_assets/SIH2026-logo.png';}else if(this.dataset.retried==='1'){this.dataset.retried='2';this.src='image/SIH2026-logo.png';}" 
+                     alt="Smart India Hackathon 2026" 
+                     class="sih-header-logo">
 
-                <div class="brand-mark">iK</div>
+                <div class="brand">
+                    <div class="brand-mark">iK</div>
 
-                <div>
-                    <h2>iKwath-X</h2>
-                    <span>ROOT LOGIC</span>
+                    <div>
+                        <h2>iKwath-X</h2>
+                        <span>ROOT LOGIC</span>
+                    </div>
                 </div>
             </div>
 
@@ -1001,7 +1006,7 @@
     </footer>
 
 
-    <script src="/landing_new.js"></script>
+    <script src="landing_new.js"></script>
 
 </body>
 
